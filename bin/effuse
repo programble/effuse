@@ -4,7 +4,7 @@ require 'optparse'
 require 'ostruct'
 require 'fileutils'
 
-options = OpenStruct.new(:verbose => false, :exclude => ['.git*', '*~', '.*.swp'], :clean => false)
+options = OpenStruct.new(:verbose => false, :exclude => ['.git', '.gitignore', '.gitmodule', '*~', '.*.swp'], :clean => false)
 
 OptionParser.new do |o|
   o.banner = 'Usage: effuse [OPTION...] [DEST]'
