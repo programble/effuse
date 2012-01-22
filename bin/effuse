@@ -1,0 +1,108 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'ostruct'
+require 'fileutils'
+
+options = OpenStruct.new(:verbose => false, :exclude => ['.git*', '*~', '.*.swp'], :clean => false)
+
+OptionParser.new do |o|
+  o.banner = 'Usage: effuse [OPTION...] [DEST]'
+
+  o.on('-c', '--clean', 'Remove symlinks') do
+    options.clean = true
+  end
+
+  o.on('-e', '--exclude GLOB', 'Exclude GLOB from symlinking') do |glob|
+    options.exclude << glob
+  end
+
+  o.on('-v', '--verbose', 'Show verbose output') do
+    options.verbose = true
+  end
+
+  o.separator ''
+
+  o.on_tail("-h", "--help", "Show this message") do
+    puts o
+    exit
+  end
+end.parse!
+
+dest_dir = ARGV[0] || Dir.home
+
+files = {}
+dirs = ['.']
+
+dirs.each do |dir|
+  puts "scanning #{dir}" if options.verbose
+  Dir.foreach(dir) do |file|
+    next if ['.', '..'].include?(file)
+
+    if options.exclude.any? {|e| File.fnmatch(e, file)}
+      puts "excluding #{File.join(dir, file)}" if options.verbose
+      next
+    end
+
+    file = File.join(dir, file)
+
+    if File.directory?(file)
+      dirs << file
+      puts "adding #{file}" if options.verbose
+      next
+    end
+
+    puts "found #{file}" if options.verbose
+    dest = File.join([dest_dir] + file.split('/')[1..-1])
+    files[File.absolute_path(file)] = dest
+  end
+end
+
+if options.clean
+  files.each_pair do |src, dest|
+    if File.exist?(dest) && File.identical?(src, dest)
+      puts dest
+      File.delete(dest)
+    else
+      puts "not symlinked #{dest}" if options.verbose
+    end
+  end
+else
+  files.each_pair do |src, dest|
+    if File.exist?(dest)
+      if File.identical?(src, dest)
+        puts "already symlinked #{dest}" if options.verbose
+        next
+      else
+        puts "File already exists: #{dest}"
+        puts "  [R] Backup and replace"
+        puts "  [i] Import original file and symlink"
+        puts "  [k] Keep original file"
+
+        skip = false
+        loop do
+          case gets.chomp.downcase[0] || 'r'
+          when 'r'
+            puts "renaming #{dest} -> #{dest + '~'}" if options.verbose
+            File.rename(dest, dest + '~')
+            break
+          when 'i'
+            puts "renaming #{src} -> #{src + '~'}" if options.verbose
+            File.rename(src, src + '~')
+            puts "renaming #{dest} -> #{src}" if options.verbose
+            File.rename(dest, src)
+            break
+          when 'k'
+            skip = true
+            break
+          end
+        end
+        next if skip
+      end
+    end
+
+    puts "#{dest} -> #{src}"
+    FileUtils.mkdir_p(File.dirname(dest))
+    File.symlink(src, dest)
+  end
+end
