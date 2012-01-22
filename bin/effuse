@@ -17,6 +17,10 @@ OptionParser.new do |o|
     options.exclude << glob
   end
 
+  o.on('-i', '--include GLOB', 'Include GLOB in symlinking') do |glob|
+    options.exclude.delete(glob)
+  end
+
   o.on('-v', '--verbose', 'Show verbose output') do
     options.verbose = true
   end
