@@ -36,9 +36,11 @@ opinion on the matter using `effuse -e file`?
 ```
 Usage: effuse [OPTION...] [DEST]
     -c, --clean                      Remove symlinks
-    -e, --exclude GLOB               Exclude GLOB from symlinking
-    -v, --verbose                    Show verbose output
 
+    -e, --exclude GLOB               Exclude GLOB from symlinking
+    -i, --include GLOB               Include GLOB in symlinking
+
+    -v, --verbose                    Show verbose output
     -h, --help                       Show this message
 ```
 
