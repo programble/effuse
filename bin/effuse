@@ -29,7 +29,7 @@ OptionParser.new do |o|
   end
 end.parse!
 
-dest_dir = ARGV[0] || ENV['HOME'] # Shakes fist at Ruby 1.8
+dest_dir = ARGV[0] || ENV['HOME'] # Shakes fist at Ruby 1.8 (Dir.home)
 
 files = {}
 dirs = ['.']
@@ -54,7 +54,7 @@ dirs.each do |dir|
 
     puts "found #{file}" if options.verbose
     dest = File.join([dest_dir] + file.split('/')[1..-1])
-    files[File.absolute_path(file)] = dest
+    files[File.expand_path(file)] = dest # Shakes fist at Ruby 1.8 (File.absolute_path)
   end
 end
 
