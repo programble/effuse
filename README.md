@@ -2,6 +2,46 @@
 
 A tool for managing symlinks
 
+## Install
+
+```
+gem install effuse
+```
+
+## Usage
+
+So, say you have all your precious dotfiles in a nice little git repository or
+Dropbox folder or whatever else you might use. It's a great way to be able to
+use your configurations on multiple computers, but how do you get those
+configurations out of the repository and into your filesystem?
+
+The answer: symbolic links. Lots of them. And how do you go about creating all
+these symlinks? Sure, you could create each one by hand, but you're a busy
+person and obviously don't have time for such menial tasks. Luckily, you've
+just discovered Effuse!
+
+Just run `effuse` in your dotfiles repository and it will automagically create
+symlinks to all your configurations in your home directory!
+
+Your configurations don't go in your home directory? No problem! Just run
+`effuse /path/` and the symlinks will be created wherever your heart desires.
+
+Symlinks aren't working out for you? Effuse has got you covered. Just run
+`effuse --clean` in your dotfiles repository and it will remove all those nasty
+symlinks it created before.
+
+Don't want to symlink a certain bothersome file? Why not tell Effuse your
+opinion on the matter using `effuse -e file`?
+
+```
+Usage: effuse [OPTION...] [DEST]
+    -c, --clean                      Remove symlinks
+    -e, --exclude GLOB               Exclude GLOB from symlinking
+    -v, --verbose                    Show verbose output
+
+    -h, --help                       Show this message
+```
+
 ## License
 
 Copyright (c) 2011, Curtis McEnroe <programble@gmail.com>
