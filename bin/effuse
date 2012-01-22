@@ -29,7 +29,7 @@ OptionParser.new do |o|
   end
 end.parse!
 
-dest_dir = ARGV[0] || Dir.home
+dest_dir = ARGV[0] || ENV['HOME'] # Shakes fist at Ruby 1.8
 
 files = {}
 dirs = ['.']
