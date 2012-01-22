@@ -13,6 +13,8 @@ OptionParser.new do |o|
     options.clean = true
   end
 
+  o.separator ''
+
   o.on('-e', '--exclude GLOB', 'Exclude GLOB from symlinking') do |glob|
     options.exclude << glob
   end
@@ -21,11 +23,11 @@ OptionParser.new do |o|
     options.exclude.delete(glob)
   end
 
+  o.separator ''
+
   o.on('-v', '--verbose', 'Show verbose output') do
     options.verbose = true
   end
-
-  o.separator ''
 
   o.on_tail("-h", "--help", "Show this message") do
     puts o
