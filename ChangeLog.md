@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.3.0 (23 January 2012)
+
+ * Added `--noconfirm` option
+
+ * Fix: Ruby 1.8 compatibility
+
 ## 0.2.0 (22 January 2012)
 
  * Added `--include` option
