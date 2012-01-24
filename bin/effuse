@@ -26,7 +26,7 @@ OptionParser.new do |o|
   o.separator ''
 
   o.on('-y', '--noconfirm CHOICE', 'Assume CHOICE on file conflicts') do |choice|
-    options.noconfirm = choice.downcase[0]
+    options.noconfirm = choice.downcase[0].chr # Shakes fist at Ruby 1.8 (.chr)
   end
 
   o.separator ''
@@ -96,7 +96,7 @@ else
           puts " [k] Keep original file"
 
           loop do
-            input = gets.chomp.downcase[0] || 'r'
+            input = gets.chomp.downcase[0].chr || 'r' # Shakes fist at Ruby 1.8 (.chr)
             break if 'rik'.include?(input)
             puts "Error: '#{input}' is not an option"
           end
