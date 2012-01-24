@@ -4,7 +4,7 @@ require 'optparse'
 require 'ostruct'
 require 'fileutils'
 
-options = OpenStruct.new(:verbose => false, :exclude => ['.git', '.gitignore', '.gitmodules', '*~', '.*.swp'], :clean => false)
+options = OpenStruct.new(:verbose => false, :exclude => ['.git', '.gitignore', '.gitmodules', '*~', '.*.swp'], :clean => false, :noconfirm => nil)
 
 OptionParser.new do |o|
   o.banner = 'Usage: effuse [OPTION...] [DEST]'
@@ -21,6 +21,12 @@ OptionParser.new do |o|
 
   o.on('-i', '--include GLOB', 'Include GLOB in symlinking') do |glob|
     options.exclude.delete(glob)
+  end
+
+  o.separator ''
+
+  o.on('-y', '--noconfirm CHOICE', 'Assume CHOICE on file conflicts') do |choice|
+    options.noconfirm = choice.downcase[0]
   end
 
   o.separator ''
@@ -80,30 +86,35 @@ else
         puts "already symlinked #{dest}" if options.verbose
         next
       else
-        puts "File already exists: #{dest}"
-        puts "  [R] Backup and replace"
-        puts "  [i] Import original file and symlink"
-        puts "  [k] Keep original file"
+        if options.noconfirm
+          input = options.noconfirm
+          puts "assuming '#{input}' for #{dest}" if options.verbose
+        else
+          puts "File already exists: #{dest}"
+          puts " [R] Backup and replace"
+          puts " [i] Import original file and symlink"
+          puts " [k] Keep original file"
 
-        skip = false
-        loop do
-          case gets.chomp.downcase[0] || 'r'
-          when 'r'
-            puts "renaming #{dest} -> #{dest + '~'}" if options.verbose
-            File.rename(dest, dest + '~')
-            break
-          when 'i'
-            puts "renaming #{src} -> #{src + '~'}" if options.verbose
-            File.rename(src, src + '~')
-            puts "renaming #{dest} -> #{src}" if options.verbose
-            File.rename(dest, src)
-            break
-          when 'k'
-            skip = true
-            break
+          loop do
+            input = gets.chomp.downcase[0] || 'r'
+            break if 'rik'.include?(input)
+            puts "Error: '#{input}' is not an option"
           end
         end
-        next if skip
+
+        case input
+        when 'r'
+          puts "renaming #{dest} -> #{dest + '~'}" if options.verbose
+          File.rename(dest, dest + '~')
+        when 'i'
+          puts "renaming #{src} -> #{src + '~'}" if options.verbose
+          File.rename(src, src + '~')
+          puts "renaming #{dest} -> #{src}" if options.verbose
+          File.rename(dest, src)
+        when 'k'
+          puts "skipping #{dest}" if options.verbose
+          next
+        end
       end
     end
 
