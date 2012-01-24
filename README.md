@@ -40,6 +40,8 @@ Usage: effuse [OPTION...] [DEST]
     -e, --exclude GLOB               Exclude GLOB from symlinking
     -i, --include GLOB               Include GLOB in symlinking
 
+    -y, --noconfirm CHOICE           Assume CHOICE on file conflicts
+
     -v, --verbose                    Show verbose output
     -h, --help                       Show this message
 ```
