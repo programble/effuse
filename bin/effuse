@@ -43,6 +43,11 @@ end.parse!
 
 dest_dir = ARGV[0] || ENV['HOME'] # Shakes fist at Ruby 1.8 (Dir.home)
 
+if File.identical?(dest_dir, '.')
+  puts 'error: destination directory is current directory'
+  exit 1
+end
+
 files = {}
 dirs = ['.']
 
