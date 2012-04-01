@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.3.2 (March 31 2012)
+
+ * Fix: Exclude `.*~` files from symlinking
+
 ## 0.3.1 (March 29 2012)
 
  * Fix: Check if destination directory is current directory
