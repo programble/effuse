@@ -4,7 +4,16 @@ require 'optparse'
 require 'ostruct'
 require 'fileutils'
 
-options = OpenStruct.new(:verbose => false, :exclude => ['.git', '.gitignore', '.gitmodules', '*~', '.*~', '.*.swp'], :clean => false, :noconfirm => nil)
+options = OpenStruct.new(:verbose   => false,
+                         :clean     => false,
+                         :noconfirm => nil,
+                         :exclude   => %w[.effuseignore .git .gitignore .gitmodules *~ .*~ .*.swp])
+
+if File.exist?('.effuseignore')
+  File.open('.effuseignore').lines do |line|
+    options.exclude << line.chomp
+  end
+end
 
 OptionParser.new do |o|
   o.banner = 'Usage: effuse [OPTION...] [DEST]'
