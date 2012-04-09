@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.0.0 (April  9 2012)
+
+ * Added `--no-backup`
+ * Support for `.effuseignore`
+
 ## 0.3.2 (March 31 2012)
 
  * Fix: Exclude `.*~` files from symlinking
