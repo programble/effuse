@@ -31,7 +31,9 @@ Symlinks aren't working out for you? Effuse has got you covered. Just run
 symlinks it created before.
 
 Don't want to symlink a certain bothersome file? Why not tell Effuse your
-opinion on the matter using `effuse -e file`?
+opinion on the matter using `effuse -e file`? Or why not give it a stern
+talking to using a `.effuseignore` file? Just put one file glob to exclude per
+line in there and never worry again.
 
 ```
 Usage: effuse [OPTION...] [DEST]
@@ -41,6 +43,7 @@ Usage: effuse [OPTION...] [DEST]
     -i, --include GLOB               Include GLOB in symlinking
 
     -y, --noconfirm CHOICE           Assume CHOICE on file conflicts
+    -n, --no-backup                  Do not create backup files
 
     -v, --verbose                    Show verbose output
     -h, --help                       Show this message
