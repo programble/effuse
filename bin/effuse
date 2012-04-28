@@ -8,6 +8,7 @@ options = OpenStruct.new(:verbose   => false,
                          :clean     => false,
                          :noconfirm => nil,
                          :backup    => true,
+                         :prefix    => "",
                          :exclude   => %w[.effuseignore .git .gitignore .gitmodules *~ .*~ .*.swp])
 
 if File.exist?('.effuseignore')
@@ -41,6 +42,12 @@ OptionParser.new do |o|
 
   o.on('-n', '--no-backup', 'Do not create backup files') do
     options.backup = false
+  end
+
+  o.separator ''
+
+  o.on('-p', '--prefix PREFIX', 'Prefix relative paths with PREFIX') do |prefix|
+    options.prefix = prefix
   end
 
   o.separator ''
@@ -84,7 +91,8 @@ dirs.each do |dir|
     end
 
     puts "found #{file}" if options.verbose
-    dest = File.join([dest_dir] + file.split('/')[1..-1])
+    relpath = file.split('/')[1..-1]
+    dest = File.join([dest_dir, options.prefix + relpath[0]] + relpath[1..-1])
     files[File.expand_path(file)] = dest # Shakes fist at Ruby 1.8 (File.absolute_path)
   end
 end

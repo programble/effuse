@@ -45,6 +45,8 @@ Usage: effuse [OPTION...] [DEST]
     -y, --noconfirm CHOICE           Assume CHOICE on file conflicts
     -n, --no-backup                  Do not create backup files
 
+    -p --prefix PREFIX               Prefix relative paths with PREFIX
+
     -v, --verbose                    Show verbose output
     -h, --help                       Show this message
 ```
