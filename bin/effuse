@@ -8,7 +8,7 @@ options = OpenStruct.new(:verbose   => false,
                          :clean     => false,
                          :noconfirm => nil,
                          :backup    => true,
-                         :prefix    => "",
+                         :prefix    => '',
                          :exclude   => %w[.effuseignore .git .gitignore .gitmodules *~ .*~ .*.swp])
 
 if File.exist?('.effuseignore')
