@@ -12,7 +12,7 @@ options = OpenStruct.new(:verbose   => false,
                          :exclude   => %w[.effuseignore .git .gitignore .gitmodules *~ .*~ .*.swp])
 
 if File.exist?('.effuseignore')
-  File.open('.effuseignore').lines.each do |line|
+  File.open('.effuseignore').lines.each do |line| # Ruby 1.8 (.each)
     options.exclude << line.chomp
   end
 end
