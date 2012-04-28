@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.1.0 (April 28 2012)
+
+ * Added `--prefix`
+ * Fix: Ruby 1.8 compatibility in reading `.effuseignore`
+
 ## 1.0.0 (April  9 2012)
 
  * Added `--no-backup`
