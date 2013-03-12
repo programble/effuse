@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.1.1 (March 12 2013)
+
+ * Dropped Ruby 1.8 compatibility
+
 ## 1.1.0 (April 28 2012)
 
  * Added `--prefix`
