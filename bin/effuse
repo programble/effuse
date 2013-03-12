@@ -12,7 +12,7 @@ options = OpenStruct.new(:verbose   => false,
                          :exclude   => %w[.effuseignore .git .gitignore .gitmodules *~ .*~ .*.swp])
 
 if File.exist?('.effuseignore')
-  File.open('.effuseignore').lines.each do |line| # Ruby 1.8 (.each)
+  File.open('.effuseignore').each_line do |line|
     options.exclude << line.chomp
   end
 end
@@ -37,7 +37,7 @@ OptionParser.new do |o|
   o.separator ''
 
   o.on('-y', '--noconfirm CHOICE', 'Assume CHOICE on file conflicts') do |choice|
-    options.noconfirm = choice.downcase[0].chr # Shakes fist at Ruby 1.8 (.chr)
+    options.noconfirm = choice.downcase[0]
   end
 
   o.on('-n', '--no-backup', 'Do not create backup files') do
@@ -62,7 +62,7 @@ OptionParser.new do |o|
   end
 end.parse!
 
-dest_dir = ARGV[0] || ENV['HOME'] # Shakes fist at Ruby 1.8 (Dir.home)
+dest_dir = ARGV[0] || Dir.home
 
 if File.identical?(dest_dir, '.')
   puts 'error: destination directory is current directory'
@@ -93,7 +93,7 @@ dirs.each do |dir|
     puts "found #{file}" if options.verbose
     relpath = file.split('/')[1..-1]
     dest = File.join([dest_dir, options.prefix + relpath[0]] + relpath[1..-1])
-    files[File.expand_path(file)] = dest # Shakes fist at Ruby 1.8 (File.absolute_path)
+    files[File.absolute_path(file)] = dest
   end
 end
 
@@ -123,7 +123,7 @@ else
           puts " [k] Keep original file"
 
           loop do
-            input = gets.chomp.downcase[0].chr || 'r' # Shakes fist at Ruby 1.8 (.chr)
+            input = gets.chomp.downcase[0] || 'r'
             break if 'rik'.include?(input)
             puts "Error: '#{input}' is not an option"
           end
