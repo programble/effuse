@@ -1,155 +1,160 @@
 #!/usr/bin/env ruby
 
+require 'fileutils'
 require 'optparse'
 require 'ostruct'
-require 'fileutils'
 
-options = OpenStruct.new(:verbose   => false,
-                         :clean     => false,
-                         :noconfirm => nil,
-                         :backup    => true,
-                         :prefix    => '',
-                         :exclude   => %w[.effuseignore .git .gitignore .gitmodules *~ .*~ .*.swp])
+opts = OpenStruct.new(dest_dir: Dir.home,
+                      import:   false,
+                      clean:    false,
+                      confirm:  true,
+                      backup:   true,
+                      prefix:   '',
+                      verbose:  false,
+                      exclude:  %w[.effuseignore .git .gitignore .gitmodules
+                                   *~ .*~ .*.swp])
 
-if File.exist?('.effuseignore')
-  File.open('.effuseignore').each_line do |line|
-    options.exclude << line.chomp
+if File.file?('.effuseignore')
+  File.open('.effuseignore').each_line do |glob|
+    opts.exclude << glob.chomp
   end
 end
 
 OptionParser.new do |o|
   o.banner = 'Usage: effuse [OPTION...] [DEST]'
 
-  o.on('-c', '--clean', 'Remove symlinks') do
-    options.clean = true
+  o.on('-i', '--import', 'Import existing files') { opts.import = true }
+  o.on('-c', '--clean', 'Remove symlinks') { opts.clean = true }
+
+  o.separator ''
+
+  o.on('--exclude GLOB', 'Exclude GLOB from symlinking') do |glob|
+    opts.exclude << glob
+  end
+  o.on('--include GLOB', 'Include GLOB in symlinking') do |glob|
+    opts.exclude.delete(glob)
   end
 
   o.separator ''
 
-  o.on('-e', '--exclude GLOB', 'Exclude GLOB from symlinking') do |glob|
-    options.exclude << glob
+  o.on('-y', '--no-confirm', 'Do not ask before replacing files') do
+    opts.confirm = false
   end
-
-  o.on('-i', '--include GLOB', 'Include GLOB in symlinking') do |glob|
-    options.exclude.delete(glob)
-  end
-
-  o.separator ''
-
-  o.on('-y', '--noconfirm CHOICE', 'Assume CHOICE on file conflicts') do |choice|
-    options.noconfirm = choice.downcase[0]
-  end
-
   o.on('-n', '--no-backup', 'Do not create backup files') do
-    options.backup = false
+    opts.backup = false
   end
 
   o.separator ''
 
-  o.on('-p', '--prefix PREFIX', 'Prefix relative paths with PREFIX') do |prefix|
-    options.prefix = prefix
+  o.on('-p', '--prefix PREFIX', 'Prefix symlinked paths with PREFIX') do |prefix|
+    opts.prefix = prefix
   end
 
   o.separator ''
 
-  o.on('-v', '--verbose', 'Show verbose output') do
-    options.verbose = true
-  end
-
-  o.on_tail("-h", "--help", "Show this message") do
+  o.on('-v', '--verbose', 'Show verbose output') { opts.verbose = true }
+  o.on_tail('-h', '--help', 'Show this message') do
     puts o
     exit
   end
 end.parse!
 
-dest_dir = ARGV[0] || Dir.home
+opts.dest_dir = ARGV[0] if ARGV[0]
 
-if File.identical?(dest_dir, '.')
+if File.identical?(opts.dest_dir, '.')
   puts 'error: destination directory is current directory'
   exit 1
 end
 
-files = {}
+$opts = opts # Don't hate me
+
+def vputs(s)
+  puts s if $opts.verbose
+end
+
+def confirm?(s)
+  return true unless $opts.confirm
+  loop do
+    print "#{s} [Y/n] "
+    input = $stdin.gets.chomp
+    return true if input.empty? || input[0].downcase == ?y
+    return false if input[0].downcase == ?n
+  end
+end
+
+def backup(src)
+  if $opts.backup
+    dest = File.join(File.dirname(src), ".#{File.basename(src)}.effuse")
+    vputs "renaming '#{src}' -> '#{dest}'"
+    File.rename(src, dest)
+  else
+    vputs "deleting '#{src}'"
+    File.delete(src)
+  end
+end
+
 dirs = ['.']
+files = {}
 
 dirs.each do |dir|
-  puts "scanning #{dir}" if options.verbose
+  vputs "scanning '#{dir}'"
   Dir.foreach(dir) do |file|
     next if ['.', '..'].include?(file)
 
-    if options.exclude.any? {|e| File.fnmatch(e, file)}
-      puts "excluding #{File.join(dir, file)}" if options.verbose
+    if opts.exclude.any? {|glob| File.fnmatch(glob, file) }
+      vputs "excluding '#{File.join(dir, file)}'"
       next
     end
 
     file = File.join(dir, file)
 
     if File.directory?(file)
+      vputs "adding '#{file}'"
       dirs << file
-      puts "adding #{file}" if options.verbose
       next
     end
 
-    puts "found #{file}" if options.verbose
-    relpath = file.split('/')[1..-1]
-    dest = File.join([dest_dir, options.prefix + relpath[0]] + relpath[1..-1])
-    files[File.absolute_path(file)] = dest
+    vputs "found '#{file}'"
+    relpath = opts.prefix + File.join(file.split('/').drop(1))
+    files[File.absolute_path(file)] = File.join(opts.dest_dir, relpath)
   end
 end
 
-if options.clean
+if opts.clean
   files.each_pair do |src, dest|
     if File.exist?(dest) && File.identical?(src, dest)
       puts dest
       File.delete(dest)
     else
-      puts "not symlinked #{dest}" if options.verbose
+      vputs "not symlinked '#{dest}'"
     end
   end
 else
   files.each_pair do |src, dest|
     if File.exist?(dest)
       if File.identical?(src, dest)
-        puts "already symlinked #{dest}" if options.verbose
+        vputs "already symlinked '#{dest}'"
         next
-      else
-        if options.noconfirm
-          input = options.noconfirm
-          puts "assuming '#{input}' for #{dest}" if options.verbose
-        else
-          puts "File already exists: #{dest}"
-          puts " [R] Backup and replace"
-          puts " [i] Import original file and symlink"
-          puts " [k] Keep original file"
-
-          loop do
-            input = gets.chomp.downcase[0] || 'r'
-            break if 'rik'.include?(input)
-            puts "Error: '#{input}' is not an option"
-          end
-        end
-
-        case input
-        when 'r'
-          if options.backup
-            puts "renaming #{dest} -> #{dest + '~'}" if options.verbose
-            File.rename(dest, dest + '~')
-          end
-        when 'i'
-          if options.backup
-            puts "renaming #{src} -> #{src + '~'}" if options.verbose
-            File.rename(src, src + '~')
-          end
-          puts "renaming #{dest} -> #{src}" if options.verbose
+      elsif opts.import
+        if confirm?("'#{dest}' already exists. Import it?")
+          backup(src)
+          vputs "renaming '#{dest}' -> '#{src}'"
           File.rename(dest, src)
-        when 'k'
-          puts "skipping #{dest}" if options.verbose
+        else
+          vputs "skipping '#{dest}'"
+          next
+        end
+      else # Replace destination file
+        if confirm?("'#{dest}' already exists. Replace it?")
+          backup(dest)
+        else
+          vputs "skipping '#{dest}'"
           next
         end
       end
     end
 
-    puts "#{dest} -> #{src}"
+    puts "'#{dest}' -> '#{src}'"
     FileUtils.mkdir_p(File.dirname(dest))
     File.symlink(src, dest)
   end
