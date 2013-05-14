@@ -21,7 +21,7 @@ if File.file?('.effuseignore')
 end
 
 OptionParser.new do |o|
-  o.banner = 'Usage: effuse [OPTION...] [DEST]'
+  o.banner = 'Usage: effuse [OPTIONS] [DEST]'
 
   o.on('-i', '--import', 'Import existing files') { opts.import = true }
   o.on('-c', '--clean', 'Remove symlinks') { opts.clean = true }

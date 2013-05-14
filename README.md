@@ -26,26 +26,30 @@ symlinks to all your configurations in your home directory!
 Your configurations don't go in your home directory? No problem! Just run
 `effuse /path/` and the symlinks will be created wherever your heart desires.
 
+Would you rather import a dotfile from your system into your repository
+than replace it? No problem, just use `effuse --import`.
+
 Symlinks aren't working out for you? Effuse has got you covered. Just run
 `effuse --clean` in your dotfiles repository and it will remove all those nasty
 symlinks it created before.
 
-Don't want to symlink a certain bothersome file? Why not tell Effuse your
-opinion on the matter using `effuse -e file`? Or why not give it a stern
-talking to using a `.effuseignore` file? Just put one file glob to exclude per
-line in there and never worry again.
+Don't want to symlink a certain bothersome file? Why not tell Effuse
+your opinion on the matter using `effuse --exclude file`? Or why not
+give it a stern talking to using a `.effuseignore` file? Just put one
+file glob to exclude per line in there and never worry again.
 
 ```
-Usage: effuse [OPTION...] [DEST]
+Usage: effuse [OPTIONS] [DEST]
+    -i, --import                     Import existing files
     -c, --clean                      Remove symlinks
 
-    -e, --exclude GLOB               Exclude GLOB from symlinking
-    -i, --include GLOB               Include GLOB in symlinking
+        --exclude GLOB               Exclude GLOB from symlinking
+        --include GLOB               Include GLOB in symlinking
 
-    -y, --noconfirm CHOICE           Assume CHOICE on file conflicts
+    -y, --no-confirm                 Do not ask before replacing files
     -n, --no-backup                  Do not create backup files
 
-    -p --prefix PREFIX               Prefix relative paths with PREFIX
+    -p, --prefix PREFIX              Prefix symlinked paths with PREFIX
 
     -v, --verbose                    Show verbose output
     -h, --help                       Show this message
