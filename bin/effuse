@@ -11,8 +11,9 @@ opts = OpenStruct.new(dest_dir: Dir.home,
                       backup:   true,
                       prefix:   '',
                       verbose:  false,
-                      exclude:  %w[.effuseignore .git .gitignore .gitmodules
-                                   *~ .*~ .*.swp])
+                      exclude:  %w[*~ .*~ .*.swp
+                                   .effuseignore *.effuse .*.effuse
+                                   .git .gitignore .gitmodules])
 
 if File.file?('.effuseignore')
   File.open('.effuseignore').each_line do |glob|
@@ -84,9 +85,8 @@ end
 
 def backup(src)
   if $opts.backup
-    dest = File.join(File.dirname(src), ".#{File.basename(src)}.effuse")
-    vputs "renaming '#{src}' -> '#{dest}'"
-    File.rename(src, dest)
+    vputs "renaming '#{src}' -> '#{src}.effuse'"
+    File.rename(src, src + '.effuse')
   else
     vputs "deleting '#{src}'"
     File.delete(src)
