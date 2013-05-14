@@ -1,5 +1,13 @@
 # Change Log
 
+## 2.0.0 (May 13 2013)
+
+ * Replace existing files by default
+ * Added `--import` option to import existing files
+ * Changed `--noconfirm` to `--no-confirm`
+ * Backup files to `.file.effuse`
+ * Removed short forms of `--exclude` and `--include` options
+
 ## 1.1.1 (March 12 2013)
 
  * Dropped Ruby 1.8 compatibility
