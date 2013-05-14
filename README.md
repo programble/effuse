@@ -1,6 +1,6 @@
 # Effuse
 
-A tool for managing symlinks
+A tool for symlinking dotfiles
 
 ## Install
 
