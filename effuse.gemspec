@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'effuse'
-  s.version = '2.0.0'
+  s.version = '2.0.1'
   s.authors = ['Curtis McEnroe']
   s.email = ['programble@gmail.com']
   s.homepage = 'https://github.com/programble/effuse'

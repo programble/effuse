@@ -1,5 +1,10 @@
 # Change Log
 
+## 2.0.1 (May 14 2013)
+
+ * Fix: Backup files by appending `.effuse`
+ * Fix: Ignore effuse backup files
+
 ## 2.0.0 (May 13 2013)
 
  * Replace existing files by default
