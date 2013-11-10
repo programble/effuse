@@ -1,5 +1,11 @@
 # Change Log
 
+## 2.1.0 (November 10 2013)
+
+ * Added support for `effuse.yml` files
+ * Deprecated `.effuseignore` files
+ * Added `--version` option
+
 ## 2.0.1 (May 14 2013)
 
  * Fix: Backup files by appending `.effuse`
