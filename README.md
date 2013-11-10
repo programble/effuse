@@ -57,7 +57,7 @@ exclude:
 
 ### Example
 
-```
+```sh
 ~ $ cd dotfiles
 dotfiles $ ls -a
 . .. .vimrc .zshrc .zsh
