@@ -35,7 +35,9 @@ class Effuse
     return unless File.file? 'effuse.yml'
     yaml = YAML.load_file('effuse.yml')
 
-    @dest_dir = File.expand_path(yaml['destination']) if yaml.include? 'destination'
+    if yaml.include? 'destination'
+      @dest_dir = File.expand_path(yaml['destination'])
+    end
     @prefix = yaml['prefix'] if yaml.include? 'prefix'
 
     exclude = yaml['exclude'] || yaml['ignore']
