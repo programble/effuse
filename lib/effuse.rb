@@ -85,6 +85,13 @@ class Effuse
       o.on('-v', '--verbose', 'Show verbose output') do
         @verbose = true
       end
+
+      o.separator ''
+
+      o.on_tail('--version', 'Show version') do
+        puts "effuse #{VERSION}"
+        exit
+      end
       o.on_tail('-h', '--help', 'Show this message') do
         puts o
         exit
