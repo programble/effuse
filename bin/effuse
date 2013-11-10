@@ -1,161 +1,206 @@
 #!/usr/bin/env ruby
 
 require 'fileutils'
+require 'yaml'
 require 'optparse'
-require 'ostruct'
 
-opts = OpenStruct.new(dest_dir: Dir.home,
-                      import:   false,
-                      clean:    false,
-                      confirm:  true,
-                      backup:   true,
-                      prefix:   '',
-                      verbose:  false,
-                      exclude:  %w[*~ .*~ .*.swp
-                                   .effuseignore *.effuse .*.effuse
-                                   .git .gitignore .gitmodules])
+class Effuse
+  def initialize
+    @dest_dir = Dir.home
+    @import   = false
+    @clean    = false
+    @confirm  = true
+    @backup   = true
+    @prefix   = ''
+    @verbose  = false
+    @exclude  = %w[*~ .*~ .*.sw? .effuseignore effuse.yml .*.effuse .git
+                   .gitignore .gitmodules]
 
-if File.file?('.effuseignore')
-  File.open('.effuseignore').each_line do |glob|
-    opts.exclude << glob.chomp
-  end
-end
+    ignore_file
+    effuse_file
+    options
 
-OptionParser.new do |o|
-  o.banner = 'Usage: effuse [OPTIONS] [DEST]'
-
-  o.on('-i', '--import', 'Import existing files') { opts.import = true }
-  o.on('-c', '--clean', 'Remove symlinks') { opts.clean = true }
-
-  o.separator ''
-
-  o.on('--exclude GLOB', 'Exclude GLOB from symlinking') do |glob|
-    opts.exclude << glob
-  end
-  o.on('--include GLOB', 'Include GLOB in symlinking') do |glob|
-    opts.exclude.delete(glob)
+    vputs self.inspect
   end
 
-  o.separator ''
-
-  o.on('-y', '--no-confirm', 'Do not ask before replacing files') do
-    opts.confirm = false
-  end
-  o.on('-n', '--no-backup', 'Do not create backup files') do
-    opts.backup = false
-  end
-
-  o.separator ''
-
-  o.on('-p', '--prefix PREFIX', 'Prefix symlinked paths with PREFIX') do |prefix|
-    opts.prefix = prefix
-  end
-
-  o.separator ''
-
-  o.on('-v', '--verbose', 'Show verbose output') { opts.verbose = true }
-  o.on_tail('-h', '--help', 'Show this message') do
-    puts o
-    exit
-  end
-end.parse!
-
-opts.dest_dir = ARGV[0] if ARGV[0]
-
-if File.identical?(opts.dest_dir, '.')
-  puts 'error: destination directory is current directory'
-  exit 1
-end
-
-$opts = opts # Don't hate me
-
-def vputs(s)
-  puts s if $opts.verbose
-end
-
-def confirm?(s)
-  return true unless $opts.confirm
-  loop do
-    print "#{s} [Y/n] "
-    input = $stdin.gets.chomp
-    return true if input.empty? || input[0].downcase == ?y
-    return false if input[0].downcase == ?n
-  end
-end
-
-def backup(src)
-  if $opts.backup
-    vputs "renaming '#{src}' -> '#{src}.effuse'"
-    File.rename(src, src + '.effuse')
-  else
-    vputs "deleting '#{src}'"
-    File.delete(src)
-  end
-end
-
-dirs = ['.']
-files = {}
-
-dirs.each do |dir|
-  vputs "scanning '#{dir}'"
-  Dir.foreach(dir) do |file|
-    next if ['.', '..'].include?(file)
-
-    if opts.exclude.any? {|glob| File.fnmatch(glob, file) }
-      vputs "excluding '#{File.join(dir, file)}'"
-      next
+  def ignore_file
+    return unless File.file? '.effuseignore'
+    puts 'warning: ignore file is deprecated, use effuse.yml instead'
+    File.readlines('.effuseignore').each do |glob|
+      @exclude << glob.chomp
     end
-
-    file = File.join(dir, file)
-
-    if File.directory?(file)
-      vputs "adding '#{file}'"
-      dirs << file
-      next
-    end
-
-    vputs "found '#{file}'"
-    relpath = opts.prefix + File.join(file.split('/').drop(1))
-    files[File.absolute_path(file)] = File.join(opts.dest_dir, relpath)
   end
-end
 
-if opts.clean
-  files.each_pair do |src, dest|
-    if File.exist?(dest) && File.identical?(src, dest)
-      puts dest
-      File.delete(dest)
+  def effuse_file
+    return unless File.file? 'effuse.yml'
+    yaml = YAML.load_file('effuse.yml')
+
+    @dest_dir = File.expand_path(yaml['destination']) if yaml.include? 'destination'
+    @prefix = yaml['prefix'] if yaml.include? 'prefix'
+
+    exclude = yaml['exclude'] || yaml['ignore']
+    @exclude.concat(exclude) if exclude
+    @exclude -= yaml['include'] if yaml.include? 'include'
+  end
+
+  def options
+    OptionParser.new do |o|
+      o.banner = 'usage: effuse [OPTIONS...] [DEST]'
+
+      o.on('-i', '--import', 'Import existing files') do
+        @import = true
+      end
+      o.on('-c', '--clean', 'Remove symlinks') do
+        @clean = true
+      end
+
+      o.separator ''
+
+      o.on('-y', '--no-confirm', 'Do not ask before replacing files') do
+        @confirm = false
+      end
+      o.on('-n', '--no-backup', 'Do not create backup files') do
+        @backup = false
+      end
+
+      o.separator ''
+
+      o.on('--exclude GLOB', 'Exclude GLOB from symlinking') do |glob|
+        @exclude << glob
+      end
+      o.on('--include GLOB', 'Include GLOB in symlinking') do |glob|
+        @exclude.delete(glob)
+      end
+
+      o.separator ''
+
+      o.on('-p', '--prefix', 'Prefix symlink paths with PREFIX') do |prefix|
+        @prefix = prefix
+      end
+
+      o.separator ''
+
+      o.on('-v', '--verbose', 'Show verbose output') do
+        @verbose = true
+      end
+      o.on_tail('-h', '--help', 'Show this message') do
+        puts o
+        exit
+      end
+    end.parse!
+    @dest_dir = ARGV.first if ARGV.first
+  end
+
+  def vputs(s)
+    puts(s) if @verbose
+  end
+
+  def confirm? s
+    return true unless @confirm
+    loop do
+      print "#{s} [Y/n] "
+      input = $stdin.gets.chomp
+      return true if input.empty? || input[0].downcase == ?y
+      return false if input[0].downcase == ?n
+    end
+  end
+
+  def backup(src)
+    if @backup
+      vputs "renaming '#{src}' -> '#{src}.effuse'"
+      File.rename(src, src + '.effuse')
     else
-      vputs "not symlinked '#{dest}'"
+      vputs "deleting '#{src}'"
+      File.delete(src)
     end
   end
-else
-  files.each_pair do |src, dest|
-    if File.exist?(dest)
-      if File.identical?(src, dest)
-        vputs "already symlinked '#{dest}'"
-        next
-      elsif opts.import
-        if confirm?("'#{dest}' already exists. Import it?")
-          backup(src)
-          vputs "renaming '#{dest}' -> '#{src}'"
-          File.rename(dest, src)
-        else
-          vputs "skipping '#{dest}'"
+
+  def scan
+    dirs = ['.']
+    files = {}
+
+    dirs.each do |dir|
+      vputs "scanning '#{dir}'"
+      Dir.foreach(dir) do |entry|
+        next if %w[. ..].include? entry
+
+        path = File.join(dir, entry)
+
+        if @exclude.any? {|g| File.fnmatch(g, entry) }
+          vputs "excluding '#{path}'"
           next
         end
-      else # Replace destination file
-        if confirm?("'#{dest}' already exists. Replace it?")
-          backup(dest)
-        else
-          vputs "skipping '#{dest}'"
+
+        if File.directory? path
+          dirs << path
           next
         end
+
+        vputs "adding '#{path}'"
+        relpath = @prefix + File.join(path.split('/').drop(1))
+        files[File.absolute_path(path)] = File.join(@dest_dir, relpath)
       end
     end
 
-    puts "'#{dest}' -> '#{src}'"
-    FileUtils.mkdir_p(File.dirname(dest))
-    File.symlink(src, dest)
+    files
   end
+
+  def clean(files)
+    files.each do |src, dest|
+      if File.exist?(dest) && File.identical?(src, dest)
+        puts dest
+        File.delete(dest)
+      else
+        vputs "'#{dest}' not symlinked"
+      end
+    end
+  end
+
+  def symlink(files)
+    files.each do |src, dest|
+      if File.exist? dest
+        if File.identical? src, dest
+          vputs "'#{dest}' already symlinked"
+          next
+        elsif @import
+          if confirm? "'#{dest}' already exists. Import it?"
+            backup(src)
+            vputs "renaming '#{dest}' -> '#{src}'"
+            File.rename(dest, src)
+          else
+            vputs "skipping '#{dest}'"
+            next
+          end
+        else # Replace destination file
+          if confirm? "'#{dest}' already exists. Replace it?"
+            backup(dest)
+          else
+            vputs "skipping '#{dest}'"
+            next
+          end
+        end
+      end
+
+      puts "'#{dest}' -> '#{src}'"
+      FileUtils.mkdir_p(File.dirname(dest))
+      File.symlink(src, dest)
+    end
+  end
+
+  def execute
+    if File.identical? @dest_dir, '.'
+      puts 'error: destination directory is current directory'
+      exit 1
+    end
+
+    if @clean
+      clean(scan)
+    else
+      symlink(scan)
+    end
+  end
+end
+
+if $0 == __FILE__
+  Effuse.new.execute
 end
