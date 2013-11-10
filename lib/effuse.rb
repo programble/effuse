@@ -13,8 +13,8 @@ class Effuse
     @backup   = true
     @prefix   = ''
     @verbose  = false
-    @exclude  = %w[*~ .*~ .*.sw? .effuseignore effuse.yml .*.effuse .git
-                   .gitignore .gitmodules]
+    @exclude  = %w[*~ .*~ .*.sw? .effuseignore effuse.yml *.effuse .*.effuse
+                   .git .gitignore .gitmodules]
 
     ignore_file
     effuse_file
