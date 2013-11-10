@@ -36,25 +36,90 @@ run `effuse --clean` in your dotfiles repository and it will remove all
 those nasty symlinks it created before.
 
 Don't want to symlink a certain bothersome file? Why not tell Effuse
-your opinion on the matter using `effuse --exclude file`? Or why not
-give it a stern talking to using a `.effuseignore` file? Just put one
-file glob to exclude per line in there and never worry again.
+your opinion on the matter using `effuse --exclude file`?
+
+If the files in your dotfiles directory aren't named with leading dots,
+you can have Effuse add them to the symlinked paths using `effuse
+--prefix .`.
+
+Now, say you want to create symlinks in `~/foo`, you want to exclude
+`*.bak` files, and you want to prefix your symlink paths with `.`.
+Specifying all those on the command line every time you run Effuse
+sounds horrible, doesn't it? Luckily, you can use an `effuse.yml` file
+instead!
+
+```yaml
+destination: ~/foo
+prefix: .
+exclude:
+  - '*.bak'
+```
+
+### Example
 
 ```
-Usage: effuse [OPTIONS] [DEST]
+~ $ cd dotfiles
+dotfiles $ ls -a
+. .. .vimrc .zshrc .zsh
+dotfiles $ ls .zsh
+foo.zsh
+dotfiles $ effuse
+'/home/you/.vimrc' -> '/home/you/dotfiles/.vimrc'
+'/home/you/.zshrc' -> '/home/you/dotfiles/.zshrc'
+'/home/you/.zsh/foo.zsh' -> '/home/you/dotfiles/.zsh/foo.zsh'
+dotfiles $ file ~/.zsh/foo.zsh
+/home/you/.zsh/foo.zsh: symbolic link to `/home/you/dotfiles/.zsh/foo.zsh`
+```
+
+### Command Line
+
+```
+usage: effuse [OPTIONS...] [DEST]
     -i, --import                     Import existing files
     -c, --clean                      Remove symlinks
-
-        --exclude GLOB               Exclude GLOB from symlinking
-        --include GLOB               Include GLOB in symlinking
 
     -y, --no-confirm                 Do not ask before replacing files
     -n, --no-backup                  Do not create backup files
 
-    -p, --prefix PREFIX              Prefix symlinked paths with PREFIX
+        --exclude GLOB               Exclude GLOB from symlinking
+        --include GLOB               Include GLOB in symlinking
+
+    -p, --prefix                     Prefix symlink paths with PREFIX
 
     -v, --verbose                    Show verbose output
+
+        --version                    Show version
     -h, --help                       Show this message
+```
+
+### YAML File
+
+The `effuse.yml` file may contain the following keys:
+
+* `destination`: Symlink destination directory (defaults to `~`)
+* `prefix`: Symlink path prefix
+* `exclude`: Array of globs to exclude from symlinking
+* `include`: Array of globs to not exclude from symlinking
+
+### Migrating from 2.0 to 2.1
+
+Version 2.1 of Effuse deprecates the use of `.effuseignore` files in
+favor of `effuse.yml` files. To migrate, add each line of the ignore
+file to the `exclude` array of the YAML file.
+
+`.effuseignore`:
+
+```
+*.bak
+foo
+```
+
+`effuse.yml`:
+
+```yaml
+exclude:
+  - '*.bak'
+  - 'foo'
 ```
 
 ## License
