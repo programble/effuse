@@ -24,12 +24,31 @@ tasks. Luckily, you've just discovered Effuse!
 Just run `effuse` in your dotfiles repository and it will automagically
 create symlinks to all your configurations in your home directory!
 
+```sh
+dotfiles $ ls -a
+. .. .vimrc .zshrc
+dotfiles $ effuse
+'/home/you/.vimrc' -> '/home/you/dotfiles/.vimrc'
+'/home/you/.zshrc' -> '/home/you/dotfiles/.zshrc'
+```
+
 Your configurations don't go in your home directory? No problem! Just
 run `effuse /path/` and the symlinks will be created wherever your heart
 desires.
 
 Would you rather import a dotfile from your system into your repository
 than replace it? No problem, just use `effuse --import`.
+
+```sh
+dotfiles $ ls -a ~
+. .. .vimrc .zshrc
+dotfiles $ touch .vimrc .zshrc
+dotfiles $ effuse --import
+'/home/you/.vimrc' already exists. Import it? [Y/n] y
+'/home/you/.vimrc' -> '/home/you/dotfiles/.vimrc'
+'/home/you/.zshrc' already exists. Import it? [Y/n] y
+'/home/you/.zshrc' -> '/home/you/dotfiles/.zshrc'
+```
 
 Symlinks aren't working out for you? Effuse has got you covered. Just
 run `effuse --clean` in your dotfiles repository and it will remove all
@@ -38,9 +57,24 @@ those nasty symlinks it created before.
 Don't want to symlink a certain bothersome file? Why not tell Effuse
 your opinion on the matter using `effuse --exclude file`?
 
+```sh
+dotfiles $ ls -a
+. .. .vimrc .zshrc
+dotfiles $ effuse --exclude .vimrc
+'/home/you/.zshrc' -> '/home/you/dotfiles/.zshrc'
+```
+
 Maybe you don't like to have the files in your dotfiles repository named
 with leading dots. If that's what floats your boat, you can have Effuse
 prefix the symlink paths using `effuse --prefix .`.
+
+```sh
+dotfiles $ ls
+vimrc zshrc
+dotfiles $ effuse --prefix .
+'/home/you/.vimrc' -> '/home/you/dotfiles/vimrc'
+'/home/you/.zshrc' -> '/home/you/dotfiles/zshrc'
+```
 
 Now, say you want to create symlinks in `~/foo`, you want to exclude
 `*.bak` files, and you want to prefix your symlink paths with `.`.
@@ -53,22 +87,6 @@ destination: ~/foo
 prefix: .
 exclude:
   - '*.bak'
-```
-
-### Example
-
-```sh
-~ $ cd dotfiles
-dotfiles $ ls -a
-. .. .vimrc .zshrc .zsh
-dotfiles $ ls .zsh
-foo.zsh
-dotfiles $ effuse
-'/home/you/.vimrc' -> '/home/you/dotfiles/.vimrc'
-'/home/you/.zshrc' -> '/home/you/dotfiles/.zshrc'
-'/home/you/.zsh/foo.zsh' -> '/home/you/dotfiles/.zsh/foo.zsh'
-dotfiles $ file ~/.zsh/foo.zsh
-/home/you/.zsh/foo.zsh: symbolic link to `/home/you/dotfiles/.zsh/foo.zsh`
 ```
 
 ### Command Line
